@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پلتفرم رزرو تبلیغات تلگرام</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/vazirmatn@33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    <style>
+        * {
+            font-family: Vazirmatn, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #6c757d;
+            margin: 0;
+        }
+        
+        .calendar-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .day-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .day-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .day-card.expanded {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: default;
+        }
+        
+        .day-card.expanded .day-title,
+        .day-card.expanded .day-header {
+            color: white;
+        }
+        
+        .day-card.expanded .badge {
+            background-color: rgba(255, 255, 255, 0.3) !important;
+        }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .day-card.expanded .day-header {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .day-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .day-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+        
+        .day-card.expanded .day-title {
+            color: white;
+        }
+        
+        .time-slots {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .day-card.expanded .time-slots {
+            display: grid;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .time-slot {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        
+        .time-slot.available {
+            border-color: #10b981;
+            color: #10b981;
+        }
+        
+        .time-slot.available:hover {
+            background: #10b981;
+            color: white;
+            transform: scale(1.05);
+        }
+        
+        .time-slot.reserved {
+            background: #f3f4f6;
+            border-color: #dc3545;
+            color: #dc3545;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .time-slot.selected {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            border: none;
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .price-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .price-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 30px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .success-icon {
+            font-size: 5rem;
+            color: #10b981;
+            animation: scaleIn 0.5s ease;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            padding: 12px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-box {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 2px solid;
+        }
+        
+        .legend-box.available {
+            border-color: #10b981;
+            background: white;
+        }
+        
+        .legend-box.reserved {
+            border-color: #dc3545;
+            background: #f3f4f6;
+        }
+        
+        textarea.form-control {
+            min-height: 150px;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header text-center">
+            <h1><i class="fab fa-telegram"></i> پلتفرم رزرو تبلیغات کانال تلگرام</h1>
+            <p class="lead">زمان مورد نظر خود را انتخاب کرده و تبلیغ خود را رزرو کنید</p>
+        </div>
+        
+        <div class="calendar-container">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-box available"></div>
+                    <span>آزاد</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box reserved"></div>
+                    <span>رزرو شده</span>
+                </div>
+            </div>
+            
+            <div id="daysContainer"></div>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div class="modal fade" id="bookingModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-calendar-check"></i> جزئیات رزرو</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="price-tag">
+                        <div class="price-amount" id="priceAmount">0</div>
+                        <div>تومان</div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <p><strong><i class="fas fa-calendar-day"></i> تاریخ:</strong> <span id="selectedDate"></span></p>
+                        <p><strong><i class="fas fa-clock"></i> ساعت:</strong> <span id="selectedTime"></span></p>
+                        <p class="mb-0"><strong><i class="fas fa-info-circle"></i> توضیحات:</strong></p>
+                        <p id="slotDescription" class="text-muted"></p>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100" onclick="proceedToPayment()">
+                        <i class="fas fa-credit-card"></i> پرداخت و ادامه
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-credit-card"></i> پرداخت</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> نمونه پرداخت از طریق درگاه های پرداخت معتبر
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fas fa-credit-card"></i> شماره کارت</label>
+                        <input type="text" class="form-control" placeholder="0000-0000-0000-0000" maxlength="19">
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6">
+                            <label class="form-label">تاریخ انقضا</label>
+                            <input type="text" class="form-control" placeholder="MM/YY" maxlength="5">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">CVV2</label>
+                            <input type="text" class="form-control" placeholder="000" maxlength="4">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100 mt-4" onclick="processPayment()">
+                        <i class="fas fa-lock"></i> پرداخت امن
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Post Upload Modal -->
+    <div class="modal fade" id="uploadModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-upload"></i> آپلود پست تبلیغاتی</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i> پرداخت با موفقیت انجام شد!
+                    </div>
+                    
+                    <form id="postForm">
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-heading"></i> عنوان پست</label>
+                            <input type="text" class="form-control" id="postTitle" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-align-right"></i> متن تبلیغ</label>
+                            <textarea class="form-control" id="postContent" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-image"></i> تصویر یا ویدیو (اختیاری)</label>
+                            <input type="file" class="form-control" id="postMedia" accept="image/*,video/*">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><i class="fas fa-link"></i> لینک (اختیاری)</label>
+                            <input type="url" class="form-control" id="postLink" placeholder="https://example.com">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-paper-plane"></i> ارسال برای تایید ادمین
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body text-center py-5">
+                    <div class="success-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h3 class="mt-4 mb-3">تبلیغ شما با موفقیت ثبت شد!</h3>
+                    <p class="text-muted">پست شما برای بررسی نهایی به ادمین ارسال شد. پس از تایید، در زمان مشخص شده منتشر خواهد شد.</p>
+                    <button class="btn btn-primary mt-4" onclick="location.reload()">
+                        <i class="fas fa-home"></i> بازگشت به صفحه اصلی
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Jalaali conversion functions
+        function toJalaali(gy, gm, gd) {
+            const g_d_m = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+            const jy = (gy <= 1600) ? 0 : 979;
+            gy -= (gy <= 1600) ? 621 : 1600;
+            let gy2 = (gm > 2) ? (gy + 1) : gy;
+            let days = (365 * gy) + (Math.floor((gy2 + 3) / 4)) - (Math.floor((gy2 + 99) / 100)) + 
+                      (Math.floor((gy2 + 399) / 400)) - 80 + gd + g_d_m[gm - 1];
+            let jy_val = jy + (33 * Math.floor(days / 12053));
+            days %= 12053;
+            jy_val += 4 * Math.floor(days / 1461);
+            days %= 1461;
+            if (days > 365) {
+                jy_val += Math.floor((days - 1) / 365);
+                days = (days - 1) % 365;
+            }
+            const jm = (days < 186) ? 1 + Math.floor(days / 31) : 7 + Math.floor((days - 186) / 30);
+            const jd = 1 + ((days < 186) ? (days % 31) : ((days - 186) % 30));
+            return { jy: jy_val, jm: jm, jd: jd };
+        }
+
+        // Persian month names
+        const persianMonths = ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور', 'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'];
+        const persianWeekDays = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه', 'شنبه'];
+        
+        // Sample data
+        let selectedSlot = null;
+        const timeSlots = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'];
+        
+        // Generate next 7 days
+        function generateDays() {
+            const daysContainer = document.getElementById('daysContainer');
+            const today = new Date();
+            
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() + i);
+                
+                const gregorianDate = {
+                    year: date.getFullYear(),
+                    month: date.getMonth() + 1,
+                    day: date.getDate()
+                };
+                
+                const jalaaliDate = toJalaali(gregorianDate.year, gregorianDate.month, gregorianDate.day);
+                const weekDay = persianWeekDays[date.getDay()];
+                const persianDateStr = `${weekDay} ${jalaaliDate.jd} ${persianMonths[jalaaliDate.jm - 1]} ${jalaaliDate.jy}`;
+                
+                const dayCard = document.createElement('div');
+                dayCard.className = 'day-card';
+                dayCard.onclick = (e) => {
+                    if (!e.target.closest('.time-slot')) {
+                        toggleDay(i);
+                    }
+                };
+                dayCard.innerHTML = `
+                    <div class="day-header">
+                        <div class="day-title">
+                            <i class="fas fa-calendar-day"></i> 
+                            <span>${persianDateStr}</span>
+                            <i class="fas fa-chevron-down expand-icon"></i>
+                        </div>
+                        <span class="badge bg-success">${getAvailableCount(i)} آزاد</span>
+                    </div>
+                    <div class="time-slots" id="day-${i}"></div>
+                `;
+                
+                daysContainer.appendChild(dayCard);
+                
+                // Generate time slots
+                const timeSlotsContainer = document.getElementById(`day-${i}`);
+                timeSlots.forEach((time, index) => {
+                    const isReserved = Math.random() > 0.7; // Random reservation
+                    const slot = document.createElement('div');
+                    slot.className = `time-slot ${isReserved ? 'reserved' : 'available'}`;
+                    slot.innerHTML = `<i class="fas fa-clock"></i><br>${time}`;
+                    
+                    if (!isReserved) {
+                        slot.onclick = () => selectSlot(persianDateStr, time, i, index);
+                    }
+                    
+                    timeSlotsContainer.appendChild(slot);
+                });
+            }
+        }
+        
+        function getAvailableCount(dayIndex) {
+            // Simulate available slots count
+            return Math.floor(Math.random() * 10) + 5;
+        }
+        
+        function toggleDay(dayIndex) {
+            const dayCard = document.querySelectorAll('.day-card')[dayIndex];
+            const timeSlotsContainer = document.getElementById(`day-${dayIndex}`);
+            
+            // Close all other days
+            document.querySelectorAll('.day-card').forEach((card, idx) => {
+                if (idx !== dayIndex) {
+                    card.classList.remove('expanded');
+                    document.getElementById(`day-${idx}`).classList.remove('show');
+                }
+            });
+            
+            // Toggle current day
+            dayCard.classList.toggle('expanded');
+            timeSlotsContainer.classList.toggle('show');
+        }
+        
+        function selectSlot(date, time, dayIndex, slotIndex) {
+            // Remove previous selection
+            document.querySelectorAll('.time-slot.selected').forEach(el => {
+                if (el.classList.contains('available')) {
+                    el.classList.remove('selected');
+                }
+            });
+            
+            // Select new slot
+            const slot = document.querySelector(`#day-${dayIndex} .time-slot:nth-child(${slotIndex + 1})`);
+            if (slot && slot.classList.contains('available')) {
+                slot.classList.add('selected');
+                selectedSlot = { date, time, dayIndex, slotIndex };
+                showBookingModal();
+            }
+        }
+        
+        function showBookingModal() {
+            const prices = [500000, 750000, 1000000, 1250000, 1500000];
+            const price = prices[Math.floor(Math.random() * prices.length)];
+            
+            document.getElementById('selectedDate').textContent = selectedSlot.date;
+            document.getElementById('selectedTime').textContent = selectedSlot.time;
+            document.getElementById('priceAmount').textContent = price.toLocaleString('fa-IR');
+            document.getElementById('slotDescription').textContent = 'پس از پرداخت، اطلاعات تبلیغ خود را وارد کنید تا ادمین آن را بررسی و تایید کند.';
+            
+            const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+            modal.show();
+        }
+        
+        function proceedToPayment() {
+            bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+            const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            modal.show();
+        }
+        
+        function processPayment() {
+            // Simulate payment processing
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+                const modal = new bootstrap.Modal(document.getElementById('uploadModal'));
+                modal.show();
+            }, 1000);
+        }
+        
+        // Handle post form submission
+        document.getElementById('postForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Simulate upload
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+                const modal = new bootstrap.Modal(document.getElementById('successModal'));
+                modal.show();
+            }, 1000);
+        });
+        
+        // Initialize
+        generateDays();
+    </script>
+</body>
+</html>
